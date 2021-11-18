@@ -1,10 +1,10 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
   <div class="container-fluid container">
-    <a class="navbar-brand" href="{{ url_for ('inicio') }}">Mello Python Blog</a>
+    <a class="navbar-brand" href="{{ url_for ('home') }}">Mello Python Blog</a>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item">
-          <a class="nav-link active" aria-current="page" href="{{ url_for ('inicio') }}">Inicio</a>
+          <a class="nav-link active" aria-current="page" href="{{ url_for ('home') }}">Inicio</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="{{ url_for ('usuarios') }}">Usuarios</a>
@@ -31,12 +31,24 @@
         </li>
       </ul>
       <ul class="d-flex navbar-nav">
-         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for ('login_conta') }}">Login</a>
-        </li>
-        <li class="d-flex">
-          <a class="nav-link" href="{{ url_for ('login_conta') }}">Criar Conta</a>
-        </li>
+        {% if current_user.is_authenticated %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for ('criar_post') }}">Criar Post</a>
+            </li>
+            <li class="d-flex">
+              <a class="nav-link" href="{{ url_for ('perfil') }}">Meu Perfil</a>
+            </li>
+            <li class="d-flex">
+              <a class="nav-link" href="{{ url_for ('sair') }}">Sair</a>
+            </li>
+        {% else %}
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for ('login_conta') }}">Login</a>
+            </li>
+            <li class="d-flex">
+                <a class="nav-link" href="{{ url_for ('login_conta') }}">Criar Conta</a>
+            </li>
+        {% endif %}
       </ul>
     </div>
   </div>

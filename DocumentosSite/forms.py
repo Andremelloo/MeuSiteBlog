@@ -1,6 +1,8 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField
-from wtforms.validators import  DataRequired, Length, Email, EqualTo
+from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
+from DocumentosSite.models import Usuario
+from flask_login import current_user
 
 ## StringField
 ## PasswordField  uma senha
@@ -20,9 +22,34 @@ class FormCriarConta(FlaskForm):
     confirmacao = PasswordField('Confirmacao da senha', validators=[DataRequired(), EqualTo('password')])
     botao_submit_criarconta = SubmitField('Criar Conta')
 
+
+    def validate_email(self, email):
+        usuario = Usuario.query.filter_by(email=email.data).first()
+        if usuario:
+            raise ValidationError('E-mail ja cadastrado')
+
+## Tem que colocar validate_ para o .validate_on_submit() verificar essa funcao.
+
+
+
+
+
 class FormLogin(FlaskForm):
     email = StringField('E-mail', validators=[DataRequired(), Email()])
     password = PasswordField('Senha', validators=[DataRequired(), Length(6, 20)])
     lembrar_dados = BooleanField('Lembrar dados de acesso')
     botao_submit_login = SubmitField('Fazer login')
 
+
+class FormEditarPerfil(FlaskForm):
+    username = StringField('Nome de usuario', validators=[DataRequired()])
+    email = StringField('E-mail', validators=[DataRequired(), Email()])
+    botao_submit_editarperfil = SubmitField('Confirmar Edição')
+
+
+    def validate_email(self, email):
+        # verificar se o cara mudou de email
+        if current_user.email != email.data:  ## e o email do usuario for diferente do email que ele escrever
+            usuario = Usuario.query.filter_by(email=email.data).first()
+            if usuario:  ## se houver um email no banco de dados, vou enviar uma msg de erro
+                raise ValidationError('Ja existe um email desse cadastrado, tento outro')
