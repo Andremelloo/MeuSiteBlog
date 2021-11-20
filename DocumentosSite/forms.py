@@ -1,9 +1,12 @@
 from flask_wtf import FlaskForm
+from flask_wtf.file import  FileField, FileAllowed
 from wtforms import StringField, PasswordField, SubmitField, BooleanField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from DocumentosSite.models import Usuario
 from flask_login import current_user
 
+
+## FileField é para escolher a foto no seu computador e FileAllowed é um valitador de arquivos
 ## StringField
 ## PasswordField  uma senha
 ## SubmitField  um botão
@@ -44,12 +47,19 @@ class FormLogin(FlaskForm):
 class FormEditarPerfil(FlaskForm):
     username = StringField('Nome de usuario', validators=[DataRequired()])
     email = StringField('E-mail', validators=[DataRequired(), Email()])
+    foto_perfil = FileField('Atualizar Foto de Perfil', validators=[FileAllowed(['jpg','png'])])
+
+    curso_python = BooleanField('Python')
+    curso_excel = BooleanField('Excel')
+    curso_vba = BooleanField('VBA')
+    curso_powerbi = BooleanField('PowerBI')
+
     botao_submit_editarperfil = SubmitField('Confirmar Edição')
 
 
     def validate_email(self, email):
         # verificar se o cara mudou de email
-        if current_user.email != email.data:  ## e o email do usuario for diferente do email que ele escrever
+        if current_user.email != email.data:  ## Se o email do usuario for diferente do email que ele escrever
             usuario = Usuario.query.filter_by(email=email.data).first()
             if usuario:  ## se houver um email no banco de dados, vou enviar uma msg de erro
                 raise ValidationError('Ja existe um email desse cadastrado, tento outro')

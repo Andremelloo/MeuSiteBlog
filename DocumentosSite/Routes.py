@@ -3,7 +3,9 @@ from DocumentosSite import app, database, bcrypt
 from DocumentosSite.forms import FormLogin, FormCriarConta, FormEditarPerfil
 from DocumentosSite.models import Usuario
 from flask_login import login_user, logout_user, current_user, login_required
-
+import secrets
+import os
+from PIL import Image
 
 # login_required é para bloquer as paginas que voce quer, quando a pessoa não esta com o login feito no site ainda.
 #current_user verifica qual usuario esta na pagina, esta logado ou nao esta logado... usando o current_user.is_authenticated
@@ -79,6 +81,39 @@ def perfil():
 def criar_post():
     return render_template('criarpost.html')
 
+
+## import secrets
+## import os
+## from PIL import Image
+
+def salvar_imagem(imagem):
+    # adicionar um codigo aleatorio no nome da imagem, para nao ter repetida.
+    codigo = secrets.token_hex(8) ## colocar um codigo de 8 numeros
+    nome, extensao = os.path.splitext(imagem.filename)
+    nome_arquivo = nome + codigo + extensao
+    caminho_completo = os.path.join(app.root_path, 'static/fotos_perfil', nome_arquivo)
+    # reduzier o tamanho da imagem, para ter mais espaço
+    tamanho = (200,200)
+    imagem_reduzida = Image.open(imagem)
+    imagem_reduzida.thumbnail(tamanho)
+    # salvar a imagem na pasta fotos_perfil
+    imagem_reduzida.save(caminho_completo)
+    return nome_arquivo
+    # mudar  o campo foto_perfil do usuario para o novo nome da imagem
+
+
+def atualizar_cursos(form):
+    lista_cursos = []
+    for campo in form:
+        if 'curso_' in campo.name:
+            ## adicionar o campo.label( excel ) na lista de cursos
+            if campo.data: ## se o campo dos cursos em boleano esta marcado.
+                lista_cursos.append(campo.label.text)
+    return ';'.join(lista_cursos)
+
+
+
+
 @app.route('/perfil/editar',methods=['GET', 'POST'])
 @login_required
 def editar_perfil():
@@ -86,9 +121,16 @@ def editar_perfil():
     if form.validate_on_submit():  ## validar o validate do model
         current_user.email = form.email.data # subistituir o email do usuario para qual ele escreveu
         current_user.username = form.username.data ## subistituir o nome do usuario para qual ele escreveu
+        if form.foto_perfil.data:
+            nome_imagem = salvar_imagem(form.foto_perfil.data)
+            current_user.foto_perfil = nome_imagem
+
+        
+        current_user.cursos = atualizar_cursos(form)
+
         database.session.commit()  ##o banco de dados que ja esta adicionado no banco de dados, entao so da um commit igual um uptade.
         flash('Perfil atualizado com succeso')
-        return  redirect(url_for('perfil')) ## depois retiriciona para a pagina perfil
+        return redirect(url_for('perfil')) ## depois retiriciona para a pagina perfil
 
     elif request.method == "GET":  ## verifica se o usuario esta carregando a pagina se sim.. executa ..deixar o seu formulario preechido ja, tenho que da um modo GET no meu site
         form.username.data = current_user.username
