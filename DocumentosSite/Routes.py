@@ -1,7 +1,7 @@
-from flask import render_template, request, flash, redirect, url_for
+from flask import render_template, request, flash, redirect, url_for, abort
 from DocumentosSite import app, database, bcrypt
-from DocumentosSite.forms import FormLogin, FormCriarConta, FormEditarPerfil
-from DocumentosSite.models import Usuario
+from DocumentosSite.forms import FormLogin, FormCriarConta, FormEditarPerfil, FormCriarPost
+from DocumentosSite.models import Usuario, Post
 from flask_login import login_user, logout_user, current_user, login_required
 import secrets
 import os
@@ -11,11 +11,12 @@ from PIL import Image
 #current_user verifica qual usuario esta na pagina, esta logado ou nao esta logado... usando o current_user.is_authenticated
 # current_user é a pessoa que esta logado na pagina, se precisar pegar informacao dela usa exemplo current_user.username
 
-lista_usuarios = ['joao','andre','Cecilia']
+
 
 @app.route("/")  ## a cada funçao é uma pagina do site.
 def home():
-    return render_template('home.html')
+    posts = Post.query.order_by(Post.id.desc())
+    return render_template('home.html', posts=posts)
 
 @app.route("/contato")  ## a cada funçao é uma pagina do site.
 def contato():
@@ -24,6 +25,7 @@ def contato():
 @app.route("/usuarios")  ## a cada funçao é uma pagina do site.
 @login_required
 def usuarios():
+    lista_usuarios = Usuario.query.all() ### Todos os usuario no banco de dados.
     return render_template('usuarios.html', lista_usuarios=lista_usuarios)
 
 @app.route("/login_conta",methods=['GET', 'POST'])  ## a cada funçao é uma pagina do site.
@@ -76,10 +78,18 @@ def perfil():
     foto_perfil = url_for('static', filename='fotos_perfil/{}'.format(current_user.foto_perfil)) ##foto\-perfil = url_for('static', filename='fotos_perfil/nome_arquivo.extensao') format, ele usa a variavel foto_perfil do Models.
     return render_template('perfil.html', foto_perfil=foto_perfil) ## passando a vareavel para o html, para poder usar
 
-@app.route('/post/criar')
+@app.route('/post/criar', methods=['GET', 'POST'])
 @login_required
 def criar_post():
-    return render_template('criarpost.html')
+    form_criar_post = FormCriarPost()  ### import a class criar post do Models
+    if form_criar_post.validate_on_submit(): ## colocando o post no banco de dados
+        post = Post(titulo=form_criar_post.titulo.data, corpo=form_criar_post.corpo.data, autor=current_user)  ## import o Post do Models ( passando os parametros pra ele.)
+        database.session.add(post)
+        database.session.commit()
+        flash('Post criado com succeso', 'alert-success') ## enviando uma msg para o usuario. 'alert-success' é a class do botstrap
+        return redirect(url_for('home'))
+
+    return render_template('criarpost.html', form_criar_post=form_criar_post)  #### passa o parametro form_criar_post para ele pode ir para o HTML
 
 
 ## import secrets
@@ -114,7 +124,7 @@ def atualizar_cursos(form):
 
 
 
-@app.route('/perfil/editar',methods=['GET', 'POST'])
+@app.route('/perfil/editar',methods=['GET', 'POST']) ### methods=['GET', 'POST']) é autorizaar o metodo POSTAR algo no site, enviar algo para o site.
 @login_required
 def editar_perfil():
     form = FormEditarPerfil()
@@ -138,3 +148,48 @@ def editar_perfil():
 
     foto_perfil = url_for('static', filename='fotos_perfil/{}'.format(current_user.foto_perfil))
     return render_template('editar_perfil.html', foto_perfil=foto_perfil, form=form) ## aqui voce passa as variavel para o HTML
+
+@app.route('/post/<post_id>', methods=['GET', 'POST'])  ## <post_id> é uma variavel chamada com esse nome, pra ir mudando conferme os post que for clicando dos usuario
+@login_required
+def exibir_post(post_id):
+    post = Post.query.get(post_id) ### pegando informacao do banco de dados
+    if current_user == post.autor:  ## se o usuario atual for o mesmo que fez o post, execute.
+        form_editar_post = FormCriarPost() ## estou usando a class do FormCriarPost para realizar a edicao do post, eu poderia fazer outra class no 'forms' se fosse o caso.
+
+        ##  ja deixar o textos preenchidos
+        if request.method == 'GET':
+            form_editar_post.titulo.data = post.titulo
+            form_editar_post.corpo.data = post.corpo
+
+        ###  substituido o que foi excrito para o atual
+        elif form_editar_post.validate_on_submit():
+            post.titulo = form_editar_post.titulo.data ## o que estava ecrito e o que eta escrito atual
+            post.corpo = form_editar_post.corpo.data
+            database.session.commit()  ## adicionando no banco de dados
+            flash('Post atualizado com sucesso!!','alert-success')  ## enviando uma msg para o usuario. 'alert-success' é a class do botstrap
+            return redirect(url_for('home'))  ## retirecionar para a pagina home
+
+
+
+
+    else:
+        form_editar_post = None
+
+
+
+    return render_template('post.html', post=post, form_editar_post=form_editar_post)  ## passando as informacoes para o HTML
+
+
+
+@app.route('/post/<post_id>/excluir', methods=['GET', 'POST'])  ## <post_id> é uma variavel chamada com esse nome, pra ir mudando conferme os post que for clicando dos usuario
+@login_required
+def excluir_post(post_id):
+    post = Post.query.get(post_id) ### pegando informacao do banco de dados
+    if current_user == post.autor: ## se o usuario atual for o mesmo que fez o post, execute.
+        database.session.delete(post)
+        database.session.commit()
+        flash('Seu Post foi excluido com succeso','alert-success')
+        return redirect(url_for('home'))
+
+    else:
+        abort(403) ### caso o usuario tente excluir usando somente o URL digitando http://127.0.0.1:5000/post/1/ exluir

@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import  FileField, FileAllowed
-from wtforms import StringField, PasswordField, SubmitField, BooleanField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from DocumentosSite.models import Usuario
 from flask_login import current_user
@@ -16,6 +16,9 @@ from flask_login import current_user
 ## Length - tamanho dos caracteres exemplo de 6 a 20 - tamanho da senha
 ## Email Validacao de email
 ## EqualTo - o campo tem que ser igual ao outro
+## validators=[DataRequired()] é pra deixar o campo obrigatorio
+
+
 
 #### preenchimento de formulario
 class FormCriarConta(FlaskForm):
@@ -63,3 +66,9 @@ class FormEditarPerfil(FlaskForm):
             usuario = Usuario.query.filter_by(email=email.data).first()
             if usuario:  ## se houver um email no banco de dados, vou enviar uma msg de erro
                 raise ValidationError('Ja existe um email desse cadastrado, tento outro')
+
+
+class FormCriarPost(FlaskForm):
+    titulo = StringField('Escreva seu Titulo', validators=[DataRequired(), Length(2, 150)])
+    corpo = TextAreaField('Escreva seu Post aqui', validators=[DataRequired()])
+    botao_submit = SubmitField('Enviar Post')

@@ -3,9 +3,55 @@
 
 {% block body %}
         <div class="container">
+            <h1>Criar POST!!</h1>
+            <hr>
+                <div class="row">
+                    <div class= "col">
+                        <form method="POST" action="" class="border p-4 nt-2">
+                            {{ form_criar_post.csrf_token }}
+                            <legend>POST</legend>
+                                <fieldset>
+                                    <div class="form-group">
+                                        {{ form_criar_post.titulo.label (class="form-control-label") }}
 
-            <h1> Criar post!!! </h1>
+                                            {% if form_criar_post.titulo.errors %}
+                                                 {{ form_criar_post.titulo (class="form-control is-invalid") }}
+                                        <div class="invalid-feedback">
+                                                {% for erro in form_criar_post.titulo.errors %}
+
+                                                    {{ erro }}
+                                                {% endfor %}
+                                        </div>
+                                            {% else %}
+                                                {{ form_criar_post.titulo (class="form-control") }}
+
+                                            {% endif %}
+
+                                    </div>
+                                    <div class="form-group">
+                                        {{ form_criar_post.corpo.label (class="form-control-label") }}
+
+                                        {% if form_criar_post.corpo.errors %}
+                                                 {{ form_criar_post.corpo (class="form-control is-invalid") }}
+                                        <div class="invalid-feedback">
+                                                {% for erro in form_criar_post.corpo.errors %}
+
+                                                    {{ erro }}
+                                                {% endfor %}
+                                        </div>
+                                            {% else %}
+                                                {{ form_criar_post.corpo (class="form-control") }}
+
+                                            {% endif %}
+                                    </div>
+
+                                </fieldset>
+                                {{ form_criar_post.botao_submit (class="btn btn-primary mt-2")}}
+
+                        </form>
+                    </div>
+
+                </div>
 
         </div>
-
 {% endblock %}
