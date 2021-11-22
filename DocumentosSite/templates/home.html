@@ -15,6 +15,7 @@
                         <div class="row justify-content-center">
 
                             {% for curso in current_user.cursos.split(';') %}
+
                                 <button type="button" class="btn btn-success mt-2" disabled>{{ curso }}</button>
                             {% endfor %}
                         </div>
