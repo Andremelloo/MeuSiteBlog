@@ -14,9 +14,9 @@
                         <h4 class="mb-0 mt-0">{{ post.autor.username  }}</h4>
                         <div class="row justify-content-center">
 
-                            {% for curso in current_user.cursos.split(';') %}
-
+                            {% for curso in post.autor.cursos.split(';') %}
                                 <button type="button" class="btn btn-success mt-2" disabled>{{ curso }}</button>
+
                             {% endfor %}
                         </div>
                     </div>

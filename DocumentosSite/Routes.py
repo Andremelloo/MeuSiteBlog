@@ -70,7 +70,7 @@ def login_conta():
 def sair():
     logout_user()
     flash(f'Logout feito com sucesso', 'alert-success')
-    return redirect(url_for('home'))
+    return redirect(url_for('contato'))
 
 @app.route('/perfil')
 @login_required # login_required é para bloquer as paginas que voce quer, quando a pessoa não esta com o login feito no site ainda.
